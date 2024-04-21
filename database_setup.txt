@@ -1,0 +1,41 @@
+--create a database named expense
+--NOTE: In database.py file replace 'password' with your PGAdmin password
+
+-- Create the users table
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name varchar,
+    username VARCHAR UNIQUE NOT NULL,
+    password_hash VARCHAR NOT NULL,
+    image BYTEA
+);
+
+-- Create the income_head table
+CREATE TABLE income_head (
+     id SERIAL,
+    head VARCHAR primary key 
+);
+
+-- Create the expense_head table
+CREATE TABLE expense_head (
+    id SERIAL,
+    head VARCHAR primary key 
+);
+
+-- Create the income table
+CREATE TABLE income (
+    id SERIAL PRIMARY KEY,
+    date DATE,
+    category varchar,
+    username varchar,
+    amount double precision,
+);
+
+-- Create the expenses table
+CREATE TABLE expenses (
+    id SERIAL PRIMARY KEY,
+    date DATE,
+    category varchar,
+    amount double precision,
+    username VARCHAR 
+);
