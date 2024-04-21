@@ -1,1 +1,7 @@
-streamlit =>1.33.0
+pip install strealit
+pip install steamlit_option_menu
+pip install psycopg2
+pip install bcrypt
+
+
+
