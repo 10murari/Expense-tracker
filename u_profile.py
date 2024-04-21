@@ -1,10 +1,8 @@
 import streamlit as st 
-import base64
+import base64  # for image
 import database as db 
-import bcrypt
+import bcrypt  # for password hasing
 import binascii
-
-
 
 def main(user):
     st.write('<p style="color: green; border-bottom: 1px solid white; margin-top: -50px; font-size: 30px;text-align: center; font-weight: bold">Your Profile</p>', unsafe_allow_html=True)
@@ -25,7 +23,7 @@ def main(user):
         with st.form('ChangeDetail',clear_on_submit=False):
             old_pwd=str(st.text_input('Old Password',key='p_old'))
             new_pwd=str(st.text_input('New Password',key='p_new'))
-            confirm=str(st.text_input('Confirm Password',key='c_new'))
+            confirm=str(st.text_input('Confirm New Password',key='c_new'))
             image=st.file_uploader('Change Profile Picture',type=['jpg','jpeg','png'])
             
 
@@ -37,7 +35,10 @@ def main(user):
                         if bcrypt.checkpw(old_pwd.encode(), binascii.unhexlify(user_detail[3])):
                             if new_pwd == confirm:
                                 # Update password in the database
-                                db.update_password(user, new_pwd,slot=place,msg="Password updated successfully")
+                                # db.update_password(user, new_pwd,slot=place,msg="Password updated successfully")
+                                db.update_password(user, new_pwd)
+                                place.success("Password updated Successfully")
+                                
                             else:
                                 place.error('New password and confirmation do not match')
                         else:
@@ -51,8 +52,6 @@ def main(user):
                     # place.success('Profile picture updated successfully')
                 elif not image and not (old_pwd.strip() and new_pwd.strip() and confirm.strip()):
                     place.error('No Details to update')
-
-
 
 if __name__=='__main__':
     pass 

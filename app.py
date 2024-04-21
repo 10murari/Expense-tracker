@@ -21,7 +21,7 @@ def logout():
     st.session_state.loggedin=False 
 
 def logo():
-    image_path='icons\icon.png'
+    image_path='icons\\icon.png'
     with open(image_path,'rb') as img:
         image=img.read() 
     st.write(f"""<div style='margin-top: -45px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%;'>
@@ -29,7 +29,6 @@ def logo():
             <p style='margin-bottom:     
             """,unsafe_allow_html=True)
     st.write("<p style='font-weight: bold; font-size: 30px; text-align: center; color: green'> Expense Tracker </p>",unsafe_allow_html=True)
-
 
 def signup():
     with st.form("Signup Form",clear_on_submit=True,border=True):
@@ -39,22 +38,23 @@ def signup():
         image=st.file_uploader('Profile Image',type=['jpg','jpeg','png'])
         if st.form_submit_button('Sign Up'):
             placeholder=st.empty()
-            if(image):
-                    image=image.read() 
+            if db.check_user_existence(username):
+                placeholder.error('Username already Used')
             else:
-                image_path = 'icons/def_icon.png'
-                with open(image_path, 'rb') as file:
-                    image = file.read()
-            if name.strip() and username.strip() and password.strip():
-                hash_pw=db.hash_generator(password)
-                db.insert_db(f"insert into users(username, password_hash,name,image) values('{username}','{hash_pw}','{name}',{psycopg2.Binary(image)})",place=placeholder,msg='User Registered')
-            else:
-                placeholder.error('All field required')
-            time.sleep(3)
-            placeholder.empty() 
-            st.rerun()
-
-
+                if(image):
+                        image=image.read() 
+                else:
+                    image_path = 'icons/def_icon.png'
+                    with open(image_path, 'rb') as file:
+                        image = file.read()
+                if name.strip() and username.strip() and password.strip():
+                    hash_pw=db.hash_generator(password)
+                    db.insert_db(f"insert into users(username, password_hash,name,image) values('{username}','{hash_pw}','{name}',{psycopg2.Binary(image)})",place=placeholder,msg='User Registered')
+                else:
+                    placeholder.error('All field required')
+                time.sleep(3)
+                placeholder.empty() 
+                st.rerun()
 
 def landing_page():
     with st.sidebar:
@@ -71,10 +71,6 @@ def landing_page():
         st.button('Log Out',on_click=logout,use_container_width=True)
 
     return selected
-
-
-
-
 
 def main():
     if 'loggedin' not in st.session_state:
@@ -107,7 +103,7 @@ def main():
                                 place3.empty()
                                 st.rerun() 
                             else:
-                                placeholder.error('Invalid')
+                                placeholder.error('Invalid Password')
                         else:
                             placeholder.error('User Not Found')
                         time.sleep(3)
@@ -118,17 +114,14 @@ def main():
     if st.session_state.loggedin:
         return landing_page() 
 
-
-
-
 if __name__=='__main__':
     selected=main()
     if selected=='Profile':
         # st.write(st.session_state.loggedin_user)
         profile.main(st.session_state.loggedin_user) 
     if selected=='Income':
-        income.add_income_record()
+        income.add_income_record(st.session_state.loggedin_user)
     if selected=='Expense':
         expense.add_expense(st.session_state.loggedin_user)
     if selected=='Report':
-        report.display_report()
+        report.show_menu()
