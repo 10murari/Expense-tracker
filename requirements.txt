@@ -1,7 +1,7 @@
-strealit
+streamlit
 steamlit_option_menu
 psycopg2
- bcrypt
+bcrypt
 
 
 
