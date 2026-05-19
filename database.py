@@ -3,67 +3,58 @@ import bcrypt
 import binascii
 from datetime import datetime, timedelta
 import streamlit as st
+import os
 
-DATABASE_CONFIG={
-    'database':'expense',
-    'user':'postgres',
-    'password':'admin',
-    'host':'localhost',
-    'port':'5432'
+DATABASE_CONFIG = {
+    'database': os.getenv('DB_NAME'),
+    'user': os.getenv('DB_USER'),
+    'password': os.getenv('DB_PASSWORD'),
+    'host': os.getenv('DB_HOST'),
+    'port': os.getenv('DB_PORT')
 }
 
 def db_connect():
     conn=psycopg2.connect(**DATABASE_CONFIG)
     return conn 
 
-def get_one(query,place):
-    '''
-    Function to fetch single tuple from database. 
+def get_one(query, place):
+    conn = None
+    result = None
 
-    Parameters:
-        query: Any valid sql query 
-        place: plaeholder (st.empty) to display the message 
-
-    Returns:
-        Output tuple. 
-    '''
-    conn=db_connect() 
     try:
+        conn = db_connect()
         with conn.cursor() as cur:
             cur.execute(query)
-            result=cur.fetchone()
-    except (Exception,psycopg2.DatabaseError) as error:
-         place.error(error)
+            result = cur.fetchone()
+
+    except (Exception, psycopg2.DatabaseError) as error:
+        place.error(error)
+
     finally:
-        if conn is not None:
-            cur.close() 
-            conn.close() 
-        return result
+        if conn:
+            conn.close()
 
-def get_all(query,place):
-    '''
-    Function to fetch all tuple from database. 
+    return result
 
-    Parameters:
-    query: Any valid sql query 
-    place: plaeholder (st.empty) to display the message 
 
-    Returns:
-    Output tuple. 
-    '''
-    conn=db_connect() 
+def get_all(query, place):
+    conn = None
+    result = []
+
     try:
+        conn = db_connect()
         with conn.cursor() as cur:
             cur.execute(query)
-            result=cur.fetchall()
-    except (Exception,psycopg2.DatabaseError) as error:
-         place.error(error)
-    finally:
-        if conn is not None:
-            cur.close() 
-            conn.close() 
-        return result
+            result = cur.fetchall()
 
+    except (Exception, psycopg2.DatabaseError) as error:
+        place.error(error)
+
+    finally:
+        if conn:
+            conn.close()
+
+    return result
 def insert_db(query,place,msg=None):
     '''
     Function to add tuple to database. 
@@ -254,24 +245,31 @@ def update_profile_picture(username, new_image,slot,msg=None):
 #     return expense_distribution
 
 #------------------PratikTheGod-----------------
-def check_user_existence(username:str): 
-    """This function check if username already exists or not\n
-    Args:
-        username: User's username
-    Return:
-        It returns true if username already exists in database otherwise false
-    """
+def check_user_existence(username: str):
+    """Check if username already exists"""
+
+    con = None
+
     try:
-        con=db_connect()
-        cursor=con.cursor()
-        cursor.execute("select * from users where username=%s",(username,))
-        result=cursor.fetchone()
+        con = db_connect()
+        cursor = con.cursor()
+
+        cursor.execute(
+            "select * from users where username=%s",
+            (username,)
+        )
+
+        result = cursor.fetchone()
+
         if result:
             return True
         else:
             return False
+
     except (Exception, psycopg2.DatabaseError) as error:
         st.error(error)
+        return False
+
     finally:
         if con is not None:
             con.close()
