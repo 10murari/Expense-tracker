@@ -21,7 +21,7 @@ def logout():
     st.session_state.loggedin=False 
 
 def logo():
-    image_path='icons\\icon.png'
+    image_path='icons/icon.png'
     with open(image_path,'rb') as img:
         image=img.read() 
     st.write(f"""<div style='margin-top: -45px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%;'>
