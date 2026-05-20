@@ -28,9 +28,9 @@ def main(user):
                 <p style='margin-bottom: 0px; margin-top: -0px; font-size: 20px;  color:green; font-weight: bold'>Update Details</p>
                 """,unsafe_allow_html=True)
         with st.form('ChangeDetail',clear_on_submit=False):
-            old_pwd=str(st.text_input('Old Password',type='password',key='p_old'))
-            new_pwd=str(st.text_input('New Password',type='password',key='p_new'))
-            confirm=str(st.text_input('Confirm New Password',type='password',key='c_new'))
+            old_pwd=st.text_input('Old Password',type='password',key='p_old')
+            new_pwd=st.text_input('New Password',type='password',key='p_new')
+            confirm=st.text_input('Confirm New Password',type='password',key='c_new')
             image=st.file_uploader('Change Profile Picture',type=['jpg','jpeg','png'])
             
 
@@ -65,5 +65,4 @@ def main(user):
 
 if __name__=='__main__':
     pass 
-
 

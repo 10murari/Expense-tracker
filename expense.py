@@ -75,11 +75,11 @@ def add_expense(user):
                 conn = db.db_connect()
                 try:
                     with conn.cursor() as cursor:
-                        existing_categories = {opt[0].lower() for opt in category_options}
+                        existing_categories_lower = {opt[0].lower() for opt in category_options}
                         for category_name in st.session_state.expense_data.keys():
-                            if category_name.lower() not in existing_categories:
+                            if category_name.lower() not in existing_categories_lower:
                                 cursor.execute("INSERT INTO expense_head (head) VALUES (%s)", (category_name,))
-                                existing_categories.add(category_name.lower())
+                                existing_categories_lower.add(category_name.lower())
 
                         cursor.execute(
                             "SELECT amount, category FROM expenses WHERE date = %s AND username = %s",
