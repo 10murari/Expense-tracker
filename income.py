@@ -110,6 +110,7 @@ def add_income_record(user):
                     conn.close()
                 st.session_state.income_data = {}
                 st.success("Income saved successfully.")
+                st.rerun()
 
     #This is to show user previous stored data of that date 
     with c2.container(border=True):
