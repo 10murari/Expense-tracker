@@ -88,16 +88,17 @@ def add_income_record(user):
                             (st.session_state.income_date, user)
                         )
                         existing_records = {
-                            existing_category.lower(): existing_amount
+                            existing_category.lower(): (existing_amount, existing_category)
                             for existing_amount, existing_category in cursor.fetchall()
                         }
 
                         for category_name, amount in st.session_state.income_data.items():
                             if category_name.lower() in existing_records:
-                                new_amount = existing_records[category_name.lower()] + amount
+                                existing_amount, existing_category_name = existing_records[category_name.lower()]
+                                new_amount = existing_amount + amount
                                 cursor.execute(
                                     "UPDATE income SET amount = %s WHERE date = %s AND category = %s AND username = %s",
-                                    (new_amount, st.session_state.income_date, category_name, user)
+                                    (new_amount, st.session_state.income_date, existing_category_name, user)
                                 )
                             else:
                                 cursor.execute(
