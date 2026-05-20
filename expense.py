@@ -69,27 +69,50 @@ def add_expense(user):
         cs2.write(f'<p style="color: black; font-size: 15px; margin-bottom: 5px;text-align: right;margin-top: -5px ">{total_expense}</p>', unsafe_allow_html=True)
         st.write('')
         if st.button("Save Expenses", key='save to db',use_container_width=True):
-            conn = db.db_connect()
-            cursor = conn.cursor()
-            existing_categories = [opt[0] for opt in category_options]
-            if selected_category.lower() not in [cat.lower() for cat in existing_categories]:
-                cursor.execute("INSERT INTO expense_head (head) VALUES (%s)", (selected_category,))
-                conn.commit()
-            cursor.execute("SELECT amount, category FROM expenses WHERE date = %s AND username = %s", (st.session_state.expense_date, user))
-            existing_records = cursor.fetchall()
-            for category,amount in st.session_state.expense_data.items():    
-                for existing_amount,existing_category in existing_records:
-                    if category.lower() == existing_category.lower():
-                        new_amount = existing_amount + amount    
-                        cursor.execute("UPDATE expenses SET amount = %s WHERE date = %s AND category = %s AND username = %s", (new_amount, st.session_state.expense_date, category, user))
-                        break
-                else:
-                    cursor.execute("INSERT INTO expenses (amount, date, category, username) VALUES (%s, %s, %s, %s)", (amount, st.session_state.expense_date, category, user))
-                if 'expense_data' in st.session_state:
-                    del st.session_state['expense_data']
-            conn.commit()
-            conn.close()
-            # st.rerun()
+            if not st.session_state.expense_data:
+                st.warning("Add at least one expense entry before saving.")
+            else:
+                conn = db.db_connect()
+                try:
+                    with conn.cursor() as cursor:
+                        existing_categories_lower = {
+                            opt[0].strip().lower()
+                            for opt in category_options
+                            if opt and isinstance(opt[0], str) and opt[0].strip()
+                        }
+                        for category_name in st.session_state.expense_data.keys():
+                            if category_name.lower() not in existing_categories_lower:
+                                cursor.execute("INSERT INTO expense_head (head) VALUES (%s)", (category_name,))
+                                existing_categories_lower.add(category_name.lower())
+
+                        cursor.execute(
+                            "SELECT amount, category FROM expenses WHERE date = %s AND username = %s",
+                            (st.session_state.expense_date, user)
+                        )
+                        existing_records = {
+                            existing_category.lower(): (existing_amount, existing_category)
+                            for existing_amount, existing_category in cursor.fetchall()
+                        }
+
+                        for category_name, amount in st.session_state.expense_data.items():
+                            if category_name.lower() in existing_records:
+                                existing_amount, existing_category_name = existing_records[category_name.lower()]
+                                new_amount = existing_amount + amount
+                                cursor.execute(
+                                    "UPDATE expenses SET amount = %s WHERE date = %s AND category = %s AND username = %s",
+                                    (new_amount, st.session_state.expense_date, existing_category_name, user)
+                                )
+                            else:
+                                cursor.execute(
+                                    "INSERT INTO expenses (amount, date, category, username) VALUES (%s, %s, %s, %s)",
+                                    (amount, st.session_state.expense_date, category_name, user)
+                                )
+                    conn.commit()
+                finally:
+                    conn.close()
+                st.session_state.expense_data = {}
+                st.success("Expenses saved successfully.")
+                st.rerun()
     
     #This is to show user previous stored data of that date 
     with c2.container(border=True):
@@ -101,7 +124,10 @@ def add_expense(user):
         cs1, cs2 = st.columns(2)
         conn=db.db_connect()
         cursor=conn.cursor()       
-        cursor.execute(f"select amount,category from expenses where date='{st.session_state.expense_date}' and username='{user}'   ") 
+        cursor.execute(
+            "select amount,category from expenses where date=%s and username=%s",
+            (st.session_state.expense_date, user)
+        ) 
         store=cursor.fetchall()
         total_expense=0
         for expense, category in store:

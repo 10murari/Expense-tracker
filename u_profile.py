@@ -10,7 +10,14 @@ def main(user):
     c1,c2,c3=st.columns([1,2.5,1])
     with c2.container(border=True):
         placeholder=st.empty() 
-        user_detail=db.get_one(f"select name,username,image,password_hash from users where username='{user}'",placeholder)
+        user_detail=db.get_one(
+            "select name,username,image,password_hash from users where username=%s",
+            placeholder,
+            params=(user,)
+        )
+        if not user_detail:
+            st.error("Unable to load profile details.")
+            return
         st.write(f"""<div style='margin-top: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; height: 100%;'>
                 <img src="data:image/png;base64,{base64.b64encode(user_detail[2]).decode()}"  width="150" height="150" style="margin-bottom: 20px; border-radius: 100%; object-fit: cover;"  />
                 <p style='margin-bottom: 0px; margin-top: -20px; font-size: 20px;  color:black; font-weight: bold'>{user_detail[0]}</p>
@@ -21,21 +28,25 @@ def main(user):
                 <p style='margin-bottom: 0px; margin-top: -0px; font-size: 20px;  color:green; font-weight: bold'>Update Details</p>
                 """,unsafe_allow_html=True)
         with st.form('ChangeDetail',clear_on_submit=False):
-            old_pwd=str(st.text_input('Old Password',key='p_old'))
-            new_pwd=str(st.text_input('New Password',key='p_new'))
-            confirm=str(st.text_input('Confirm New Password',key='c_new'))
+            old_pwd=st.text_input('Old Password',type='password',key='p_old')
+            new_pwd=st.text_input('New Password',type='password',key='p_new')
+            confirm=st.text_input('Confirm New Password',type='password',key='c_new')
+            st.caption("Password must be at least 6 characters long.")
             image=st.file_uploader('Change Profile Picture',type=['jpg','jpeg','png'])
             
 
             if st.form_submit_button('Update details'):
                 place = st.empty()
                 if old_pwd.strip() or new_pwd.strip() or confirm.strip():
-                    # if new_pwd.strip() and confirm.strip():
+                    if not (old_pwd.strip() and new_pwd.strip() and confirm.strip()):
+                        place.error('Fill all password fields to change password')
+                    elif len(new_pwd.strip()) < 6:
+                        place.error('New password must be at least 6 characters long')
                     # Check if old password matches the stored hashed password
+                    else:
                         if bcrypt.checkpw(old_pwd.encode(), binascii.unhexlify(user_detail[3])):
                             if new_pwd == confirm:
                                 # Update password in the database
-                                # db.update_password(user, new_pwd,slot=place,msg="Password updated successfully")
                                 db.update_password(user, new_pwd)
                                 place.success("Password updated Successfully")
                                 
@@ -55,7 +66,3 @@ def main(user):
 
 if __name__=='__main__':
     pass 
-
-
-
-
