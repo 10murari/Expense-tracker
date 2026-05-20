@@ -207,10 +207,10 @@ def show_bar_graph_income_monthly(username:str, start_date:datetime):
     if end_date>datetime.now().date():
         end_date=datetime.now().date()
     
-    st.subheader(f"Expenses for the period from {start_date} to {end_date}")
+    st.subheader(f"Income for the period from {start_date} to {end_date}")
     con = db.db_connect()
     cursor = con.cursor()
-    cursor.execute("SELECT category, SUM(amount) FROM expenses WHERE username=%s AND date BETWEEN %s AND %s GROUP BY category",
+    cursor.execute("SELECT category, SUM(amount) FROM income WHERE username=%s AND date BETWEEN %s AND %s GROUP BY category",
                    (username, start_date, end_date))
     rows = cursor.fetchall()
     rows = dict(rows)

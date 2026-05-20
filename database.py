@@ -1,7 +1,6 @@
 import psycopg2
 import bcrypt
 import binascii
-from datetime import datetime, timedelta
 import streamlit as st
 import os
 
@@ -17,14 +16,14 @@ def db_connect():
     conn=psycopg2.connect(**DATABASE_CONFIG)
     return conn 
 
-def get_one(query, place):
+def get_one(query, place, params=None):
     conn = None
     result = None
 
     try:
         conn = db_connect()
         with conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, params)
             result = cur.fetchone()
 
     except (Exception, psycopg2.DatabaseError) as error:
@@ -37,14 +36,14 @@ def get_one(query, place):
     return result
 
 
-def get_all(query, place):
+def get_all(query, place, params=None):
     conn = None
     result = []
 
     try:
         conn = db_connect()
         with conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, params)
             result = cur.fetchall()
 
     except (Exception, psycopg2.DatabaseError) as error:
@@ -55,7 +54,7 @@ def get_all(query, place):
             conn.close()
 
     return result
-def insert_db(query,place,msg=None):
+def insert_db(query, place, msg=None, params=None):
     '''
     Function to add tuple to database. 
 
@@ -70,7 +69,7 @@ def insert_db(query,place,msg=None):
     conn=db_connect() 
     try:
         with conn.cursor() as cur:
-            cur.execute(query)
+            cur.execute(query, params)
             conn.commit() 
             if msg is not None:
                 place.success(msg)
@@ -78,7 +77,6 @@ def insert_db(query,place,msg=None):
          place.error(error)
     finally:
         if conn is not None:
-            cur.close() 
             conn.close()  
 
 def hash_generator(password):
@@ -252,14 +250,12 @@ def check_user_existence(username: str):
 
     try:
         con = db_connect()
-        cursor = con.cursor()
-
-        cursor.execute(
-            "select * from users where username=%s",
-            (username,)
-        )
-
-        result = cursor.fetchone()
+        with con.cursor() as cursor:
+            cursor.execute(
+                "select 1 from users where username=%s",
+                (username,)
+            )
+            result = cursor.fetchone()
 
         if result:
             return True

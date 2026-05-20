@@ -19,6 +19,7 @@ if 'loggedin_user' not in st.session_state:
 
 def logout():
     st.session_state.loggedin=False 
+    st.session_state.loggedin_user=None
 
 def logo():
     image_path='icons/icon.png'
@@ -49,7 +50,12 @@ def signup():
                         image = file.read()
                 if name.strip() and username.strip() and password.strip():
                     hash_pw=db.hash_generator(password)
-                    db.insert_db(f"insert into users(username, password_hash,name,image) values('{username}','{hash_pw}','{name}',{psycopg2.Binary(image)})",place=placeholder,msg='User Registered')
+                    db.insert_db(
+                        "insert into users(username, password_hash, name, image) values(%s, %s, %s, %s)",
+                        place=placeholder,
+                        msg='User Registered',
+                        params=(username.strip(), hash_pw, name.strip(), psycopg2.Binary(image))
+                    )
                 else:
                     placeholder.error('All field required')
                 time.sleep(3)
@@ -92,7 +98,11 @@ def main():
                     place3=st.empty() 
                     if place3.button('Login'):
                         placeholder=st.empty()
-                        db_pwd=db.get_one(f"Select password_hash from users where username='{username}'",placeholder)
+                        db_pwd=db.get_one(
+                            "Select password_hash from users where username=%s",
+                            placeholder,
+                            params=(username.strip(),)
+                        )
                         if db_pwd:
                             if db.check_pw(password,db_pwd[0]):
                                 placeholder.success('Logged In')
