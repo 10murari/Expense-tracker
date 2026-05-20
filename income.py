@@ -77,7 +77,11 @@ def add_income_record(user):
                 conn = db.db_connect()
                 try:
                     with conn.cursor() as cursor:
-                        existing_categories_lower = {opt[0].lower() for opt in category_options}
+                        existing_categories_lower = {
+                            opt[0].strip().lower()
+                            for opt in category_options
+                            if opt and isinstance(opt[0], str) and opt[0].strip()
+                        }
                         for category_name in st.session_state.income_data.keys():
                             if category_name.lower() not in existing_categories_lower:
                                 cursor.execute("INSERT INTO income_head (head) VALUES (%s)", (category_name,))
