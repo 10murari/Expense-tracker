@@ -31,6 +31,7 @@ def main(user):
             old_pwd=st.text_input('Old Password',type='password',key='p_old')
             new_pwd=st.text_input('New Password',type='password',key='p_new')
             confirm=st.text_input('Confirm New Password',type='password',key='c_new')
+            st.caption("Password must be at least 6 characters long.")
             image=st.file_uploader('Change Profile Picture',type=['jpg','jpeg','png'])
             
 
@@ -65,4 +66,3 @@ def main(user):
 
 if __name__=='__main__':
     pass 
-
